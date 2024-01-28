@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -39,8 +41,10 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.paging.LoadState
@@ -53,50 +57,40 @@ import x.y.xynews.ui.compose.navigation.Destinations
 import x.y.xynews.viewmodel.MainActivityViewModel
 import java.io.IOException
 
+//@Preview
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewsListScreen(navController: NavHostController) {
 
-    val mainViewModel: MainActivityViewModel = viewModel()
-//    val data = mainViewModel.getData().collectAsLazyPagingItems()
+    //vieModel
+    val mainViewModel: MainActivityViewModel = hiltViewModel()
 
-    var channel by remember {
+    //category
+    val channel = remember {
         mutableStateOf(CATEGORY[0])
     }
 
-    val data = mainViewModel.getNewsData(channel).collectAsLazyPagingItems()
+    //当前选择的category
+    val selectedTabIndex = remember {
+        mutableIntStateOf(0)
+    }
+
+    //获取新闻列表
+    val data = remember(channel.value) {
+        mainViewModel.getNewsData(channel.value)
+    }.collectAsLazyPagingItems()
+
+//    val data = mainViewModel.getNewsData(channel.value).collectAsLazyPagingItems()
 
     val refreshState = rememberPullToRefreshState()
+
+    val lazyListState = rememberLazyListState()
 
     if (refreshState.isRefreshing) {
         data.refresh()
     }
 
-    var selectedTabIndexState by remember {
-        mutableIntStateOf(0)
-    }
-
-    ScrollableTabRow(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        selectedTabIndex = selectedTabIndexState
-    ) {
-        CATEGORY.forEachIndexed { index, title ->
-            Tab(
-                selected = selectedTabIndexState == index,
-                onClick = {
-                    selectedTabIndexState = index
-                    channel = CATEGORY[index]
-                },
-                text = {
-                    Text(
-                        text = title
-                    )
-                }
-            )
-        }
-    }
+    CategoryTabBar(channel = channel, selectedTabIndex = selectedTabIndex)
 
     Box(
         modifier = Modifier
@@ -108,10 +102,11 @@ fun NewsListScreen(navController: NavHostController) {
     ) {
         LazyColumn(
             modifier = Modifier
-                .background(color = Color.White)
+                .background(color = Color.White),
+            state = lazyListState
         ) {
             items(items = data) { item ->
-                Message(navController = navController, data = item, viewModel = mainViewModel)
+                News(navController = navController, data = item, viewModel = mainViewModel)
             }
 
             val TAG = "加载状态"
@@ -265,78 +260,86 @@ fun NewsListScreen(navController: NavHostController) {
     }
 }
 
-//@Composable
-//fun Message(data: DemoReqData.DataBean.DatasBean?) {
-//    Card(
-//        modifier = Modifier
-//            .background(Color.White)
-//            .padding(10.dp)
-//            .fillMaxSize(),
-//        elevation = CardDefaults.cardElevation(
-//            defaultElevation = 5.dp
-//        )
-//    ) {
-//        Column(modifier = Modifier.padding(10.dp)) {
-//            Text(
-//                text = "作者：${data?.author}"
-//            )
-//            Text(text = "${data?.title}")
-//        }
-//    }
-//
-//}
+@Composable
+fun CategoryTabBar(channel: MutableState<String>,selectedTabIndex: MutableState<Int>) {
+    ScrollableTabRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        selectedTabIndex = selectedTabIndex.value
+    ) {
+        CATEGORY.forEachIndexed { index, title ->
+            Tab(
+                selected = selectedTabIndex.value == index,
+                onClick = {
+                    selectedTabIndex.value = index
+                    channel.value = CATEGORY[index]
+                },
+                text = {
+                    Text(
+                        text = title
+                    )
+                }
+            )
+        }
+    }
+}
 
 @Composable
-fun Message(navController: NavHostController, data: NewsDetail?, viewModel: MainActivityViewModel) {
+fun News(navController: NavHostController, data: NewsDetail?, viewModel: MainActivityViewModel) {
     Card(
         modifier = Modifier
             .background(Color.White)
             .padding(10.dp)
+            .fillMaxSize(),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 5.dp
+        )
+    ) {
+        Column(modifier = Modifier
             .fillMaxSize()
+            .background(Color.White)
             .clickable {
                 viewModel.newsDetail.value = data
                 navController.navigate(Destinations.NewsDetail.route) {
                     restoreState = true
                 }
-            },
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 5.dp
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.White)
-                .padding(10.dp)
-        ) {
-            Column(
+            }) {
+            Row(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .wrapContentWidth(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxSize()
+                    .background(Color.White)
+                    .padding(10.dp)
             ) {
-                AsyncImage(
+                Column(
                     modifier = Modifier
-                        .width(100.dp)
-                        .height(80.dp)
-                        .padding(end = 10.dp),
-                    model = data?.pic,
-                    contentDescription = "新闻图片",
-                    alignment = Alignment.Center
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "作者：${data?.src}"
-                )
-                Text(text = "${data?.title}")
+                        .fillMaxHeight()
+                        .wrapContentWidth(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .width(100.dp)
+                            .height(80.dp)
+                            .padding(end = 10.dp),
+                        model = data?.pic,
+                        contentDescription = "新闻图片",
+                        alignment = Alignment.Center
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "作者：${data?.src}"
+                    )
+                    Text(text = "${data?.title}")
+                }
             }
         }
     }

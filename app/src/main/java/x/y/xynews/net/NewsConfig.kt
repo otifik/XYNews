@@ -1,8 +1,8 @@
 package x.y.xynews.net
 
 const val APPKEY = "da39dce4f8aa52155677ed8cd23a6470"
-const val NUM = 5
-const val PAGE_NUM = 5
+const val NUM = 10
+const val PAGE_NUM = 2
 const val CHANNEL_TOUTIAO = "头条"
 const val CHANNEL_GUONEI = "国内"
 const val CHANNEL_GUOJI = "国际"

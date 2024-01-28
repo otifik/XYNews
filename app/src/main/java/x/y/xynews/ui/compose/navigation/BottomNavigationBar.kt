@@ -12,11 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import x.y.xynews.ui.compose.screen.account.AccountScreen
+import x.y.xynews.ui.compose.screen.account.aboutus.AboutUsScreen
+import x.y.xynews.ui.compose.screen.account.history.HistoryScreen
+import x.y.xynews.ui.compose.screen.account.policy.PolicyScreen
+import x.y.xynews.ui.compose.screen.account.star.StarScreen
 import x.y.xynews.ui.compose.screen.news.NewsDetailScreen
 import x.y.xynews.ui.compose.screen.news.NewsListScreen
 import x.y.xynews.viewmodel.MainActivityViewModel
@@ -30,8 +36,7 @@ fun BottomBar(
     )
 
     NavigationBar(
-        modifier = modifier,
-        containerColor = Color.LightGray,
+        modifier = modifier
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
@@ -40,7 +45,7 @@ fun BottomBar(
 
             NavigationBarItem(
                 label = {
-                    Text(text = screen.title!!)
+                    Text(text = screen.title!!,color = Color.Black)
                 },
                 icon = {
                     Icon(imageVector = screen.icon!!, contentDescription = "")
@@ -68,11 +73,13 @@ fun BottomBar(
 @Composable
 fun NavigationGraph(navController: NavHostController) {
     NavHost(navController, startDestination = Destinations.News.route) {
+
+//        newsNavigationGraph(navController)
+//
+//        accountNavigationGraph(navController)
+
         composable(Destinations.News.route) {
             NewsListScreen(navController)
-        }
-        composable(Destinations.Account.route) {
-            AccountScreen()
         }
         composable(Destinations.NewsDetail.route) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
@@ -80,6 +87,60 @@ fun NavigationGraph(navController: NavHostController) {
             }
             val parentViewModel = hiltViewModel<MainActivityViewModel>(parentEntry)
             NewsDetailScreen(navController, parentViewModel)
+        }
+
+        composable(Destinations.Account.route) {
+            AccountScreen(navController)
+        }
+
+        composable(Destinations.History.route) {
+            HistoryScreen(navController)
+        }
+
+        composable(Destinations.Star.route) {
+            StarScreen(navController)
+        }
+
+        composable(Destinations.Policy.route) {
+            PolicyScreen(navController)
+        }
+        composable(Destinations.AboutUs.route) {
+            AboutUsScreen(navController)
+        }
+    }
+}
+
+fun NavGraphBuilder.newsNavigationGraph(navController: NavHostController) {
+    navigation(startDestination = Destinations.News.route, route = NEWS_ROUTE) {
+        composable(Destinations.News.route) {
+            NewsListScreen(navController)
+        }
+        composable(Destinations.NewsDetail.route) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(Destinations.News.route)
+            }
+            val parentViewModel = hiltViewModel<MainActivityViewModel>(parentEntry)
+            NewsDetailScreen(navController, parentViewModel)
+        }
+    }
+}
+
+fun NavGraphBuilder.accountNavigationGraph(navController: NavHostController) {
+    navigation(startDestination = Destinations.Account.route, route = ACCOUNT_ROUTE) {
+        composable(Destinations.Account.route) {
+            AccountScreen(navController)
+        }
+
+        composable(Destinations.History.route) {
+            HistoryScreen(navController)
+        }
+
+        composable(Destinations.Star.route) {
+            StarScreen(navController)
+        }
+
+        composable(Destinations.Policy.route) {
+            PolicyScreen(navController)
         }
     }
 }
