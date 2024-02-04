@@ -3,11 +3,10 @@ package x.y.xynews.net.source
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import kotlinx.coroutines.delay
 import x.y.xynews.net.CHANNEL_TOUTIAO
 import x.y.xynews.net.PAGE_NUM
 import x.y.xynews.net.bean.NewsDetail
-import x.y.xynews.net.network.NewsDataRepository
+import x.y.xynews.net.network.repository.NewsDataRepository
 import java.io.IOException
 
 class NewsDataSource(private val channel: String = CHANNEL_TOUTIAO) : PagingSource<Int, NewsDetail>() {

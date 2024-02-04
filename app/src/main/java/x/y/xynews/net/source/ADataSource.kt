@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import x.y.xynews.net.bean.DemoReqData
-import x.y.xynews.net.network.DataRepository
+import x.y.xynews.net.network.repository.DataRepository
 import java.io.IOException
 
 class ADataSource : PagingSource<Int, DemoReqData.DataBean.DatasBean>() {

@@ -8,8 +8,12 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import dagger.hilt.android.lifecycle.HiltViewModel
+import x.y.xynews.net.PAGE_SIZE
+import x.y.xynews.net.bean.Article
 import x.y.xynews.net.bean.NewsDetail
+import x.y.xynews.net.bean.Source
 import x.y.xynews.net.source.ADataSource
+import x.y.xynews.net.source.NewsApiOrgDataSource
 import x.y.xynews.net.source.NewsDataSource
 import javax.inject.Inject
 
@@ -23,9 +27,15 @@ class MainActivityViewModel @Inject constructor() : ViewModel() {
 //        ADataSource()
 //    }.flow.cachedIn(viewModelScope)
 
-    var newsDetail: MutableState<NewsDetail?> = mutableStateOf(NewsDetail("none","none","none","none","none","none","none","none"))
+//    var newsDetail: MutableState<NewsDetail?> = mutableStateOf(NewsDetail("none","none","none","none","none","none","none","none"))
+//
+//    fun getNewsData(channel: String) = Pager(PagingConfig(pageSize = 5)) {
+//        NewsDataSource(channel)
+//    }.flow.cachedIn(viewModelScope)
 
-    fun getNewsData(channel: String) = Pager(PagingConfig(pageSize = 5)) {
-        NewsDataSource(channel)
+    var article: MutableState<Article?> = mutableStateOf(Article("none","none","none","none",Source("none","none"),"none","none","none"))
+
+    fun getTopHeadlines(category: String) = Pager(PagingConfig(pageSize = PAGE_SIZE)) {
+        NewsApiOrgDataSource(category)
     }.flow.cachedIn(viewModelScope)
 }

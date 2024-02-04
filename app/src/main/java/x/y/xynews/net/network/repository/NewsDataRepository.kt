@@ -1,9 +1,10 @@
-package x.y.xynews.net.network
+package x.y.xynews.net.network.repository
 
 import x.y.xynews.net.APPKEY
 import x.y.xynews.net.CHANNEL_TOUTIAO
 import x.y.xynews.net.NUM
 import x.y.xynews.net.api.NewsDataApi
+import x.y.xynews.net.network.NewsRetrofit
 
 object NewsDataRepository {
 

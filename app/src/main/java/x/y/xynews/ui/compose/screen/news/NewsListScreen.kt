@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,7 +52,11 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.items
 import coil.compose.AsyncImage
+import x.y.xynews.R
 import x.y.xynews.net.CATEGORY
+import x.y.xynews.net.CATEGORY_ALL
+import x.y.xynews.net.CATEGORY_MAP
+import x.y.xynews.net.bean.Article
 import x.y.xynews.net.bean.NewsDetail
 import x.y.xynews.ui.compose.navigation.Destinations
 import x.y.xynews.viewmodel.MainActivityViewModel
@@ -66,9 +71,12 @@ fun NewsListScreen(navController: NavHostController) {
     val mainViewModel: MainActivityViewModel = hiltViewModel()
 
     //category
-    val channel = remember {
-        mutableStateOf(CATEGORY[0])
+    val category = remember {
+        mutableStateOf(CATEGORY_ALL[0])
     }
+//    val channel = remember {
+//        mutableStateOf(CATEGORY[0])
+//    }
 
     //当前选择的category
     val selectedTabIndex = remember {
@@ -76,8 +84,12 @@ fun NewsListScreen(navController: NavHostController) {
     }
 
     //获取新闻列表
-    val data = remember(channel.value) {
-        mainViewModel.getNewsData(channel.value)
+//    val data = remember(category.value) {
+//        mainViewModel.getNewsData(category.value)
+//    }.collectAsLazyPagingItems()
+
+    val data = remember(category.value) {
+        mainViewModel.getTopHeadlines(category.value)
     }.collectAsLazyPagingItems()
 
 //    val data = mainViewModel.getNewsData(channel.value).collectAsLazyPagingItems()
@@ -90,7 +102,7 @@ fun NewsListScreen(navController: NavHostController) {
         data.refresh()
     }
 
-    CategoryTabBar(channel = channel, selectedTabIndex = selectedTabIndex)
+    CategoryTabBar(category = category, selectedTabIndex = selectedTabIndex)
 
     Box(
         modifier = Modifier
@@ -261,23 +273,23 @@ fun NewsListScreen(navController: NavHostController) {
 }
 
 @Composable
-fun CategoryTabBar(channel: MutableState<String>,selectedTabIndex: MutableState<Int>) {
+fun CategoryTabBar(category: MutableState<String>,selectedTabIndex: MutableState<Int>) {
     ScrollableTabRow(
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp),
         selectedTabIndex = selectedTabIndex.value
     ) {
-        CATEGORY.forEachIndexed { index, title ->
+        CATEGORY_ALL.forEachIndexed { index, title ->
             Tab(
                 selected = selectedTabIndex.value == index,
                 onClick = {
                     selectedTabIndex.value = index
-                    channel.value = CATEGORY[index]
+                    category.value = CATEGORY_ALL[index]
                 },
                 text = {
                     Text(
-                        text = title
+                        text = CATEGORY_MAP[CATEGORY_ALL[index]]!!
                     )
                 }
             )
@@ -286,7 +298,7 @@ fun CategoryTabBar(channel: MutableState<String>,selectedTabIndex: MutableState<
 }
 
 @Composable
-fun News(navController: NavHostController, data: NewsDetail?, viewModel: MainActivityViewModel) {
+fun News(navController: NavHostController, data: Article?, viewModel: MainActivityViewModel) {
     Card(
         modifier = Modifier
             .background(Color.White)
@@ -300,7 +312,7 @@ fun News(navController: NavHostController, data: NewsDetail?, viewModel: MainAct
             .fillMaxSize()
             .background(Color.White)
             .clickable {
-                viewModel.newsDetail.value = data
+                viewModel.article.value = data
                 navController.navigate(Destinations.NewsDetail.route) {
                     restoreState = true
                 }
@@ -323,9 +335,11 @@ fun News(navController: NavHostController, data: NewsDetail?, viewModel: MainAct
                             .width(100.dp)
                             .height(80.dp)
                             .padding(end = 10.dp),
-                        model = data?.pic,
+                        model = data?.urlToImage,
                         contentDescription = "新闻图片",
-                        alignment = Alignment.Center
+                        alignment = Alignment.Center,
+                        placeholder = painterResource(id = R.drawable.icon),
+                        error = painterResource(id = R.drawable.icon)
                     )
                 }
                 Column(
@@ -336,7 +350,7 @@ fun News(navController: NavHostController, data: NewsDetail?, viewModel: MainAct
                     horizontalAlignment = Alignment.Start
                 ) {
                     Text(
-                        text = "作者：${data?.src}"
+                        text = "作者：${data?.source?.name}"
                     )
                     Text(text = "${data?.title}")
                 }
